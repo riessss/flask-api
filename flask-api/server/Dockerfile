@@ -1,9 +1,19 @@
-FROM python:3.10-slim
+FROM python:3.9-slim
 
-COPY . requirements.txt
+RUN python -m pip install --upgrade pip
 
-RUN pip install -r --no-cache requirements.txt
+WORKDIR /usr/src/app
+
+COPY requirements.txt ./
+
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python","main.py"]
+ENV FLASK_APP=mian.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_PORT=5000
+
+EXPOSE 5000
+
+CMD ["python", "website/main.py"]
