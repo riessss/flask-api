@@ -9,18 +9,38 @@ class User(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True, unique=True)
     username: so.Mapped[str] = so.mapped_column(sa.String(80), unique=True)
     email: so.Mapped[str] = so.mapped_column(sa.String(120), unique=True)
-    posts: so.Mapped['Post'] = so.relationship(back_populates="author")
+    posts: so.Mapped[list['Post']] = so.relationship(back_populates="author")
 
-    def __rper__(self):
-        return "<Username {} >."(self.user)
+    def to_json(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'posts': [post.to_json() for post in self.posts]
+        }
+
+    def __repr__(self):
+        return "<Username {} >."(self.username)
 
     
 class Post(db.Model):
     __tablename__ = "post_table"
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    body: so.WriteOnlyCollection[str] = so.mapped_column(sa.String(250))
+    title: so.Mapped[str] = so.mapped_column(sa.String(50))
+    body: so.Mapped[str] = so.mapped_column(sa.String(250))
     time: so.Mapped[datetime] = so.mapped_column(DateTime(timezone=True))
-    author: so.Mapped[str] = so.relationship(back_populates=User.id)
+    author: so.Mapped['User'] = so.relationship(back_populates=User.id)
+    edited: so.Mapped[bool] = so.mapped_column(sa.Boolean())
 
-    def __repr(self):
-        pass
+    def to_json(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'body': self.body,
+            'time': self.time.isoformat() if self.time else None,
+            'author': self.author.username,
+            'edited': self.edited
+            }
+
+    def __repr__(self):
+        return f"<Post(title='{self.title}', author='{self.author.username}')>"
