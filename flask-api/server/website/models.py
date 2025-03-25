@@ -5,11 +5,10 @@ import sqlalchemy as sa
 from website import db
 
 class User(db.Model):
-    __tablename__ = "user_table"
     id: so.Mapped[int] = so.mapped_column(primary_key=True, unique=True)
     username: so.Mapped[str] = so.mapped_column(sa.String(80), unique=True)
     email: so.Mapped[str] = so.mapped_column(sa.String(120), unique=True)
-    posts: so.Mapped[list['Post']] = so.relationship(back_populates="author")
+    posts: so.Mapped[list['Post']] = so.relationship(back_populates='author')
 
     def to_json(self):
         return {
@@ -20,16 +19,16 @@ class User(db.Model):
         }
 
     def __repr__(self):
-        return "<Username {} >."(self.username)
+        return "<Username {self.username} >."
 
     
 class Post(db.Model):
-    __tablename__ = "post_table"
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     title: so.Mapped[str] = so.mapped_column(sa.String(50))
     body: so.Mapped[str] = so.mapped_column(sa.String(250))
-    time: so.Mapped[datetime] = so.mapped_column(DateTime(timezone=True))
-    author: so.Mapped['User'] = so.relationship(back_populates=User.id)
+    time: so.Mapped[datetime] = so.mapped_column(DateTime(timezone=True),index=True)
+    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)
+    author: so.Mapped[User] = so.relationship(back_populates='posts')
     edited: so.Mapped[bool] = so.mapped_column(sa.Boolean())
 
     def to_json(self):

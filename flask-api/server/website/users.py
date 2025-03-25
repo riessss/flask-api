@@ -7,28 +7,25 @@ import uuid
 user = Blueprint('user', __name__)
 
 
-@user.route('/users', methods=['GET'])
+@user.route('/', methods=['GET'])
 def user_list():
-    users = User.Query.order_by(User.username).all()
+    users = User.query.order_by(User.username).all()
     return jsonify({'status': 'success', 'users': [user.to_json() for user in users]})
 
 
 @user.route('/get_user/<int:user_id>', methods=['GET'])
 def get_user(user_id):
-    user = db.one_or_404(user, id=user_id)
+    user = User.query.filter_by(id=user_id).one_or_404()
     return jsonify({'status': 'success', 'user': user.to_json()})
 
 
 @user.route('/create_user', methods=['POST'])
 def create_user():
     post_data = request.get_json()
-    user = User()
-
-    user.id = uuid.uuid4().hex
-    user.username = post_data.get('username')
-    user.email = post_data.get('email')
-    #user.posts = 0
-
+    user = User(
+        username = post_data.get('username'),
+        email = post_data.get('email')
+    )
     db.session.add(user)
     db.session.commit()
     return jsonify({'status': 'success', 'message': 'User created'})
@@ -37,20 +34,22 @@ def create_user():
 @user.route('/update_user/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
     post_data = request.get_json()
-    user = db.one_or_404(User, id=user_id)
-
+    user = User.query.filter_by(id=user_id).one_or_404()
+    
     #add logic if only one is edited
-    user.username = request.json('username')
-    user.email = request.json('email')
+    user.id = user_id
+    user.username = post_data.get('username')
+    user.email = post_data.get('email')
     
     db.session.commit()
-    return jsonify({})
+    return jsonify({'status': 'success', 'message': 'User updated'})
 
 
 @user.route('/delete_user/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
-    user = db.one_or_404(User, id=user_id)
+    user = User.query.filter_by(id=user_id).one_or_404()
 
     db.session.delete(user)
-    return jsonify({})
+    db.session.commit()
+    return jsonify({'status': 'success', 'message': 'User deleted'})
 
