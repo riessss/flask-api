@@ -1,16 +1,16 @@
-from flask import Blueprint, jsonify, request
-from website import db
+from flask import Blueprint, jsonify, request, abort
+from api import db
 from datetime import datetime
 from .models import Post
-import uuid
+
 
 post = Blueprint('post', __name__)
 
+
 @post.route('/', methods=['GET'])
 def posts():
-    if request.method == 'GET':
-        posts = Post.query.order_by(Post.time).all()
-        return jsonify({'status': 'success', 'posts': [post.to_json() for post in posts] })
+    posts = Post.query.order_by(Post.time).all()
+    return jsonify({'status': 'success', 'posts': [post.to_json() for post in posts] })
 
 @post.route('/<int:post_id>', methods=['GET'])
 def open_post(post_id):
@@ -19,18 +19,17 @@ def open_post(post_id):
 
 @post.route('/create/<int:user_id>', methods=['POST'])
 def make_post(user_id):
-    if request.method == 'POST':
-        post_data = request.get_json()
-        post = Post(
-            user_id = user_id,
-            title = post_data.get('title'),
-            body = post_data.get('body'),
-            time = datetime.now(),
-            edited = False
-        )
-        db.session.add(post)
-        db.session.commit()
-        return jsonify({'status': 'success', 'message': 'Post added!'})
+    post_data = request.get_json()
+    post = Post(
+        user_id = user_id,
+        title = post_data.get('title'),
+        body = post_data.get('body'),
+        time = datetime.now(),
+        edited = False
+    )
+    db.session.add(post)
+    db.session.commit() 
+    return jsonify({'status': 'success', 'message': 'Post added!'})
 
 @post.route('/edit/<int:post_id>', methods=['PUT'])
 def edit_post(post_id):

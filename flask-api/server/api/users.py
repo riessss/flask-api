@@ -1,7 +1,6 @@
-from flask import Blueprint, jsonify, request
-from website import db
+from flask import Blueprint, jsonify, request, abort
+from api import db
 from .models import User
-import uuid
 
 
 user = Blueprint('user', __name__)
@@ -10,18 +9,24 @@ user = Blueprint('user', __name__)
 @user.route('/', methods=['GET'])
 def user_list():
     users = User.query.order_by(User.username).all()
-    return jsonify({'status': 'success', 'users': [user.to_json() for user in users]})
+    users = []
+    if not users:
+        abort(404, description="No users found")
+
+    return jsonify({'status': 'success', 'users': [user.to_json() for user in users]}), 200
 
 
 @user.route('/get_user/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     user = User.query.filter_by(id=user_id).one_or_404()
-    return jsonify({'status': 'success', 'user': user.to_json()})
+    return jsonify({'status': 'success', 'user': user.to_json()}), 200
 
 
 @user.route('/create_user', methods=['POST'])
 def create_user():
     post_data = request.get_json()
+    
+    #if username or email =0 ,raise error
     user = User(
         username = post_data.get('username'),
         email = post_data.get('email')

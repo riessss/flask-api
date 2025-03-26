@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from sqlalchemy import DateTime
 import sqlalchemy.orm as so
 import sqlalchemy as sa
-from website import db
+from api import db
 
 class User(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True, unique=True)
